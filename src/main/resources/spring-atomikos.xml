@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+    <context:property-placeholder location="classpath:config.properties" />
+    <import resource="classpath:dataSourceJTA.xml"/>
+    <!--配置自定义的bean-->
+    <context:component-scan base-package="com.cc.ccspace.service">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+    <bean id="testService" class="com.cc.ccspace.service.test.TestServiceImpl"></bean>
+    <!-- 配置 mybatis -->
+    <bean id="sqlSessionFactory01" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--采用动态数据源方案-->
+        <property name="dataSource" ref="dataSource01"/>
+        <property name="configLocation"  value="classpath:mybatis-config.xml"/>
+        <property name="mapperLocations" value="classpath:com/cc/ccspace/mapper/**/*.xml"/>
+    </bean>
+    <!-- 配置 BaseDao -->
+    <bean id="baseDao" class="com.cc.ccspace.base.dao.BaseDaoImpl">
+        <property name="sqlSessionFactory" ref="sqlSessionFactory01"/>
+    </bean>
+    <!-- Mybatis Dao -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.cc.ccspace.base.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory01"/>
+    </bean>
+    <!-- 配置 mybatis -->
+    <bean id="sqlSessionFactory02" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--采用动态数据源方案-->
+        <property name="dataSource" ref="dataSource02"/>
+        <property name="configLocation"  value="classpath:mybatis-config.xml"/>
+        <property name="mapperLocations" value="classpath:com/cc/ccspace/mapper/**/*.xml"/>
+    </bean>
+    <!-- 配置 BaseDao -->
+    <bean id="baseDao02" class="com.cc.ccspace.base.dao.BaseDaoImpl">
+        <property name="sqlSessionFactory" ref="sqlSessionFactory02"/>
+    </bean>
+    <!-- Mybatis Dao -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.cc.ccspace.base.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory02"/>
+    </bean>
+
+    <bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager"
+    init-method="init" destroy-method="close">
+        <property name="forceShutdown" value="true"/>
+
+    </bean>
+
+    <bean id="atomikosUserTransaction" class="com.atomikos.icatch.jta.UserTransactionImp">
+        <property name="transactionTimeout" value="300" />
+    </bean>
+    <bean id="jtaTransactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="transactionManager" ref="atomikosTransactionManager"/>
+        <property name="userTransaction" ref="atomikosUserTransaction"/>
+        <!--
+        <property name="allowCustomIsolationLevels" value="true"/>
+        -->
+    </bean>
+    <!-- 配置事务管理器 管理的数据源指向动态数据源即可 -->
+    <tx:annotation-driven transaction-manager="jtaTransactionManager" proxy-target-class="true"/>
+   <!-- <tx:advice id="txAdvice" transaction-manager="jtaTransactionManager">
+        <tx:attributes>
+            <tx:method name="*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:pointcut id="aop" expression="execution(* com.cc.ccspace.service..*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="aop"/>
+    </aop:config>-->
+    <!-- 相关配置结束 -->
+
+    <!--
+        name：与事务属性关联的方法名。通配符（*）可以用来指定一批关联到相同的事务属性的方法。 如：'get*'、'handle*'、'on*Event'等等。
+        propagation="REQUIRED"：事务传播行为
+        isolation			默认值 DEFAULT:事务隔离级别
+        timeout				默认值 	-1 	事务超时的时间（以秒为单位）
+        read-only			默认值 	false 	事务是否只读？
+        rollback-for		将被触发进行回滚的 Exception(s)；以逗号分开。 如：'com.foo.MyBusinessException,ServletException'
+        no-rollback-for 	不被触发进行回滚的 Exception(s)；以逗号分开。 如：'com.foo.MyBusinessException
+    -->
+    <!--     <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="batch*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+        </tx:attributes>
+    </tx:advice> -->
+    <!--
+        把事务控制在Service层
+        第一个 * —— 通配 任意返回值类型
+        第二个 * —— 通配 包com.polin.omeal.service下的任意class
+        第三个 * —— 通配 包com.polin.omeal.service下的任意class的任意方法
+        第四个 .. —— 通配 方法可以有0个或多个参数
+
+        综上：包com.polin.omeal.service下的任意class的具有任意返回值类型、任意类、任意名称的方法、任意数目参数和<tx:advice/>有关的设置
+    -->
+
+
+</beans>

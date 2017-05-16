@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+    <context:property-placeholder location="classpath:config.properties" />
+    <!-- 海南数据源配置 开始-->
+    <bean id="dataSource01" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init" destroy-method="close">
+        <property name="uniqueResourceName" value="ds1"/>
+        <property name="xaDataSourceClassName" value="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource"/>
+        <property name="xaProperties">
+            <props>
+                <prop key="url">${dataSource.cc.url}</prop>
+                <prop key="user">${dataSource.cc.username}</prop>
+                <prop key="password">${dataSource.cc.password}</prop>
+            </props>
+        </property>
+        <property name="minPoolSize" value="5" />
+        <property name="maxPoolSize" value="100" />
+        <property name="borrowConnectionTimeout" value="30" />
+        <property name="testQuery" value="select 1" />
+        <property name="maintenanceInterval" value="60" />
+    </bean>
+
+
+    <bean id="dataSource02" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init" destroy-method="close">
+        <property name="uniqueResourceName" value="ds2"/>
+        <property name="xaDataSourceClassName" value="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource"/>
+        <property name="xaProperties">
+            <props>
+                <prop key="url">${dataSource.cc02.url}</prop>
+                <prop key="user">${dataSource.cc02.username}</prop>
+                <prop key="password">${dataSource.cc02.password}</prop>
+            </props>
+        </property>
+        <property name="minPoolSize" value="5" />
+        <property name="maxPoolSize" value="100" />
+        <property name="borrowConnectionTimeout" value="30" />
+        <property name="testQuery" value="select 1" />
+        <property name="maintenanceInterval" value="60" />
+    </bean>
+
+
+</beans>
